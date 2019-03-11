@@ -1,0 +1,68 @@
+Sub Moderate()
+
+For Each ws In Worksheets
+
+Dim oldTicker As String
+Dim newTicker As String
+Dim Volume As Double
+Dim VolumeTotal As Double
+Dim lastRow As Long
+Dim OpenPrice As Double
+Dim ClosePrice As Double
+Dim SummaryTicker_Row As Integer
+SummaryTicker_Row = 2
+
+'Add Headers in Row 1
+ws.Cells(1, 9).Value = "Ticker"
+ws.Cells(1, 10).Value = "Volume"
+ws.Cells(1, 11).Value = "Open/Close Difference"
+ws.Cells(1, 12).Value = "Price Difference %"
+
+'Captures last ticker in the correct Ws, doesn't compare last ticker of WS A to first ticker of WS B
+lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row + 1
+
+For i = 2 To lastRow
+    Volume = ws.Cells(i, 7)
+    newTicker = ws.Cells(i, 1)
+        If newTicker = oldTicker Or oldTicker = "" Then
+            VolumeTotal = VolumeTotal + Volume
+            ClosePrice = ws.Cells(i, 6)
+        Else
+            ws.Cells(SummaryTicker_Row, 9).Value = oldTicker
+            ws.Cells(SummaryTicker_Row, 10).Value = VolumeTotal
+            ws.Cells(SummaryTicker_Row, 11).Value = (ClosePrice - OpenPrice)
+                
+                If ClosePrice > OpenPrice Then
+                    ws.Cells(SummaryTicker_Row, 11).Font.Color = vbGreen
+                    ws.Cells(SummaryTicker_Row, 12).Font.Color = vbGreen
+                ElseIf OpenPrice > ClosePrice Then
+                    ws.Cells(SummaryTicker_Row, 11).Font.Color = vbRed
+                    ws.Cells(SummaryTicker_Row, 12).Font.Color = vbRed
+                End If
+                
+                If OpenPrice > 0 Then
+                    ws.Cells(SummaryTicker_Row, 12).Value = (ClosePrice - OpenPrice) / OpenPrice
+                Else: ws.Cells(SummaryTicker_Row, 12).Value = "Not a Number"
+                End If
+            
+            SummaryTicker_Row = SummaryTicker_Row + 1
+            VolumeTotal = Volume
+            ClosePrice = ws.Cells(i, 6)
+        End If
+        
+        If newTicker <> oldTicker Or oldTicker = "" Then
+            OpenPrice = ws.Cells(i, 3)
+        End If
+        
+        oldTicker = newTicker
+        
+    Next i
+    
+    ws.Range("K:K").Style = "Currency"
+    ws.Range("L:L").Style = "Percent"
+    ws.Range("J:J").Style = "Comma"
+    
+    Next ws
+
+End Sub
+
